@@ -70,15 +70,15 @@ fi
 
 # --- Step 5: Install VCDS ---
 if [ ! -f "$VCDS_DIR/VCDS.exe" ]; then
-    echo "[5/7] VCDS not found."
+    echo "[5/7] Installing VCDS..."
     echo ""
-    echo "Download the VCDS installer from:"
-    echo "  https://www.ross-tech.com/vcds/download/"
-    echo ""
-    echo "Then drag the downloaded file into this Terminal window"
+    echo "Drag the VCDS installer (.exe file) into this window"
     echo "and press Enter."
     echo ""
-    read -p "Installer path: " INSTALLER
+    echo "(If you haven't downloaded it yet, get it from"
+    echo " https://www.ross-tech.com/vcds/download/ )"
+    echo ""
+    read -p "Drop installer here: " INSTALLER
 
     # Clean up the path (handle drag-and-drop escaping, quotes, tilde)
     INSTALLER="$(echo "$INSTALLER" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"

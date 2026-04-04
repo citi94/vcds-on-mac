@@ -38,7 +38,16 @@ When it finishes, it will print something like this:
 **Copy and paste those lines into Terminal and press Enter.** This only needs
 to be done once.
 
-### Step 2 — Download This Project
+### Step 2 — Download VCDS
+
+Download the VCDS installer from Ross-Tech (you need a license):
+
+**https://www.ross-tech.com/vcds/download/**
+
+Save the `.exe` file to your Downloads folder. Don't try to open it — the
+setup script will handle it.
+
+### Step 3 — Download and Run This Setup
 
 Click the green **Code** button at the top of this page, then **Download ZIP**.
 
@@ -50,15 +59,11 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
-The setup script will:
-1. Install Rosetta 2 (lets your Mac run Intel/Windows software)
-2. Install Wine (free software that runs Windows programs on Mac)
-3. Ask you for the VCDS installer (download it from ross-tech.com first)
-4. Set up USB support for HEX-NET / HEX-V2
-5. Set up WiFi auto-discovery for HEX-NET
-6. Create a VCDS icon in your Applications folder
+The setup script will install everything automatically. When it gets to VCDS,
+it will ask you to drag the installer you downloaded in Step 2 into the
+Terminal window — just drag the `.exe` file from Finder and press Enter.
 
-### Step 3 — Launch VCDS
+### Step 4 — Launch VCDS
 
 Double-click **VCDS** in your Applications folder.
 
