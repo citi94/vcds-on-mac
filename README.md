@@ -1,184 +1,34 @@
-# VCDS on Mac (Apple Silicon)
+# This project has been replaced by DiagBridge
 
-Run Ross-Tech VCDS on your Mac. No Windows, no VM — just download and go.
+## → [github.com/citi94/diagbridge](https://github.com/citi94/diagbridge) ←
 
-**USB and WiFi** connections to HEX-NET and HEX-V2 both work. It runs fast.
+Everything this guide did, and much more, is now a single signed Mac app:
+download a DMG, drag it to Applications, point it at your VCDS installer,
+done. No Terminal, no Homebrew, no patching.
 
-## What You Need
+**DiagBridge is better in every way:**
 
-- A Mac with an Apple Silicon chip (M1, M2, M3, M4, etc.)
-- A licensed copy of [VCDS](https://www.ross-tech.com/vcds/download/) from Ross-Tech
-- A Ross-Tech HEX-NET or HEX-V2 diagnostic interface
+| | This guide (old) | DiagBridge |
+|---|---|---|
+| Install | 10–15 min of Terminal commands | Drag and drop |
+| How VCDS runs | Intel Wine translated by Rosetta 2 | **Native ARM64** — genuinely fast |
+| Signed & notarized | No | Yes |
+| USB + WiFi interfaces | Yes (after manual patching) | Yes, out of the box |
+| Survives Wine updates | No — patches need re-applying | Self-contained |
+| Scan logs | Buried in a hidden Wine prefix | `~/Documents/VCDS Logs` |
+| VCDS updates | Manual | Hold Option at launch |
 
-## Setup (10–15 minutes)
+The old approach also stops working when Apple removes Rosetta 2 —
+DiagBridge runs VCDS's own ARM64 binaries natively, so it doesn't care.
 
-### Step 1 — Install Homebrew
+As before: you need your own licensed copy of VCDS (25.x or later) and a
+Ross-Tech interface. DiagBridge ships no Ross-Tech software and is not
+affiliated with Ross-Tech LLC.
 
-Homebrew is a free tool that installs software on your Mac. If you already
-have it, skip to Step 2.
+The Wine port that makes this possible is open source:
+[citi94/wine-macos-arm64](https://github.com/citi94/wine-macos-arm64).
 
-Open **Terminal** (press Cmd+Space, type "Terminal", press Enter) and paste
-this command (Cmd+V), then press Enter:
+---
 
-```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
-This is safe — Homebrew is used by millions of people. It may ask for your
-Mac password. **When you type your password, nothing will appear on screen —
-that's normal.** Just type it and press Enter.
-
-When it finishes, it will print something like this:
-
-```
-==> Next steps:
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-```
-
-**Copy and paste those lines into Terminal and press Enter.** This only needs
-to be done once.
-
-### Step 2 — Download VCDS
-
-Download the VCDS installer from Ross-Tech (you need a license):
-
-**https://www.ross-tech.com/vcds/download/**
-
-Save the `.exe` file to your Downloads folder. Don't try to open it — the
-setup script will handle it.
-
-### Step 3 — Download and Run This Setup
-
-Click the green **Code** button at the top of this page, then **Download ZIP**.
-
-Unzip the file (double-click it), then open Terminal and type:
-
-```
-cd ~/Downloads/vcds-on-mac-main
-chmod +x setup.sh
-./setup.sh
-```
-
-The setup script will install everything automatically. When it gets to VCDS,
-it will ask you to drag the installer you downloaded in Step 2 into the
-Terminal window — just drag the `.exe` file from Finder and press Enter.
-
-### Step 4 — Launch VCDS
-
-Double-click **VCDS** in your Applications folder.
-
-If macOS says it can't open the app, go to **System Settings** >
-**Privacy & Security** and click **Open Anyway**.
-
-## Connecting to Your Interface
-
-### WiFi (HEX-NET only)
-
-After setup, WiFi auto-discovery works automatically. VCDS will find your
-HEX-NET on the network. Make sure the HEX-NET is connected to the same WiFi
-network as your Mac.
-
-If auto-discovery doesn't find it, you can enter the IP manually:
-**Options** > **IP Parameters** > **Fixed** > enter your HEX-NET's IP address.
-
-The HEX-V2 does not have WiFi — use USB instead.
-
-### USB (HEX-NET and HEX-V2)
-
-Plug in your interface via USB. VCDS should detect it automatically.
-
-If it doesn't, the USB patch may need re-applying (see Troubleshooting below).
-
-## Troubleshooting
-
-**macOS says the app "is damaged" or "can't be opened"**
-Go to **System Settings** > **Privacy & Security**, scroll down, and click
-**Open Anyway**. This only needs to be done once.
-
-**"Can't Open Codes File: CODES.DAT"**
-Use the VCDS app in Applications or the `launch-vcds.sh` script. Don't try
-to run VCDS.exe directly.
-
-**USB interface not found**
-The USB patch needs re-applying after Wine updates. Run:
-```
-cd vcds-on-mac
-./scripts/patch-winebus.sh
-```
-
-**WiFi shows "Broadcast(s) used: NONE"**
-The WiFi fix may need reinstalling. Run `./setup.sh` again — it won't
-reinstall everything, just fix what's needed.
-
-**Wine won't start at all**
-Try: `codesign --force --deep --sign - "/Applications/Wine Stable.app"`
-Then go to **System Settings** > **Privacy & Security** > **Open Anyway**.
-
-**After a Wine update, USB stopped working**
-Wine updates overwrite the USB patch. Re-apply it:
-```
-./scripts/patch-winebus.sh
-```
-WiFi is not affected by Wine updates.
-
-## How It Works
-
-<details>
-<summary>Technical details (click to expand)</summary>
-
-VCDS is a Windows program. On Apple Silicon Macs, it runs through two
-translation layers:
-
-```
-VCDS.EXE (Windows program)
-    |
-Wine (translates Windows calls to macOS)
-    |
-Rosetta 2 (translates Intel code to Apple Silicon)
-    |
-macOS
-```
-
-### USB Fix
-
-Wine's USB HID driver only exposes gamepad-type devices by default. The
-HEX-NET/HEX-V2 is a USB HID device but not a gamepad, so Wine ignores it.
-
-The fix (`scripts/patch-winebus.sh`) changes a single conditional jump in
-Wine's `winebus.so` to unconditional, making it expose all HID devices.
-This is a 1-byte change at offset 0xe07 in Wine 11.0.
-
-### WiFi Fix
-
-macOS has 30+ network interfaces (Thunderbolt bridges, VPN tunnels, etc.).
-VCDS calls Windows' `GetAdaptersInfo` with a fixed-size buffer that overflows
-with this many interfaces and gives up.
-
-The fix (`iphlpapi-wrapper/`) is a wrapper DLL that properly allocates the
-buffer and filters to only real network adapters, excluding loopback,
-Tailscale/CGNAT, and link-local addresses.
-
-Source: `iphlpapi-wrapper/iphlpapi.c`
-
-</details>
-
-## Disclaimer
-
-VCDS, VAG-COM, HEX-NET, and HEX-V2 are registered trademarks of Ross-Tech, LLC.
-This project is **not affiliated with, endorsed by, or associated with Ross-Tech**.
-All trademarks are the property of their respective owners.
-
-This project does not include or modify VCDS software. You must purchase a valid
-VCDS license and interface directly from [Ross-Tech](https://www.ross-tech.com).
-
-This software is provided "as is" without warranty of any kind. Use at your own
-risk. The authors are not responsible for any damage to your vehicle, diagnostic
-equipment, or computer.
-
-This project uses [Wine](https://www.winehq.org/) (LGPL 2.1+). Wine binaries are
-not redistributed — only a patching script is provided.
-
-## License
-
-The scripts and wrapper DLL in this repository are released under the
-[MIT License](LICENSE).
+*The old manual instructions remain in this repository's
+[git history](../../commits/main) for anyone who needs them.*
